@@ -1,69 +1,106 @@
-name: Deploy NexusRegistry to Production
+   name: Deploy NexusRegistry to Production
 
-on:
-  push:
-    branches:
-      - main
+   on:
+     push:
+       branches:
+         - main
 
-jobs:
-  test-and-build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+   env:
+     REGISTRY: ghcr.io
+     IMAGE_NAME: ${{ github.repository }}/app
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: pdo, pgsql, zip
+   jobs:
+     test-and-build:
+       runs-on: ubuntu-latest
+       steps:
+         - name: Checkout Code
+           uses: actions/checkout@v4
 
-      - name: Install Composer Dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+         - name: Setup PHP
+           uses: shivammathur/setup-php@v2
+           with:
+             php-version: '8.4'
+             extensions: pdo, pgsql, zip
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+         - name: Install Composer Dependencies
+           run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Install NPM Dependencies & Build Assets
-        run: |
-          npm ci
-          npm run build
+         - name: Setup Node.js
+           uses: actions/setup-node@v4
+           with:
+             node-version: '22'
+             cache: 'npm'
 
-      - name: Create Environment File
-        run: cp .env.example .env
+         - name: Install NPM Dependencies & Build Assets
+           run: |
+             npm ci
+             npm run build
 
-      - name: Generate App Key for Testing
-        run: php artisan key:generate
+         - name: Create Environment File
+           run: cp .env.example .env
 
-      - name: Run Tests (Premium Quality Gate)
-        run: php artisan test
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
+         - name: Generate App Key for Testing
+           run: php artisan key:generate
 
-  deploy:
-    needs: test-and-build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+         - name: Run Tests (Premium Quality Gate)
+           run: php artisan test
+           env:
+             DB_CONNECTION: sqlite
+             DB_DATABASE: ':memory:'
 
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: 22
-          script: |
-            cd ${{ secrets.DEPLOY_PATH }}
-            git pull origin main
-            docker compose pull
-            docker compose build --no-cache app
-            docker compose up -d --remove-orphans
-            docker compose exec -T app php artisan migrate --force
-            docker compose exec -T app php artisan optimize:clear
-            docker compose exec -T app php artisan horizon:terminate
+     build-and-push:
+       needs: test-and-build
+       runs-on: ubuntu-latest
+       permissions:
+         contents: read
+         packages: write
+       steps:
+         - name: Checkout Code
+           uses: actions/checkout@v4
+
+         - name: Log in to GitHub Container Registry
+           uses: docker/login-action@v3
+           with:
+             registry: ${{ env.REGISTRY }}
+             username: ${{ github.actor }}
+             password: ${{ secrets.GITHUB_TOKEN }}
+
+         - name: Build and push Docker image
+           uses: docker/build-push-action@v5
+           with:
+             context: .
+             file: resources/docker/Dockerfile
+             push: true
+             tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+             cache-from: type=gha
+             cache-to: type=gha,mode=max
+
+     deploy:
+       needs: build-and-push
+       runs-on: ubuntu-latest
+       steps:
+         - name: Deploy to VPS via SSH
+           uses: appleboy/ssh-action@v1.0.3
+           with:
+             host: ${{ secrets.VPS_HOST }}
+             username: ${{ secrets.VPS_USER }}
+             key: ${{ secrets.VPS_SSH_KEY }}
+             port: 22
+             command_timeout: 20m
+             script: |
+               cd ${{ secrets.DEPLOY_PATH }}
+               git pull origin main
+               
+               # Pull the pre-built image from GitHub (takes seconds!)
+               docker compose pull app
+               
+               # Start the containers
+               docker compose up -d --remove-orphans
+               
+               # Run migrations and clear cache
+               docker compose exec -T app php artisan migrate --force
+               docker compose exec -T app php artisan optimize:clear
+               docker compose exec -T app php artisan horizon:terminate
+               
+               # Clean up old images to save disk space
+               docker image prune -f

@@ -1,24 +1,29 @@
 # docker-compose.yml
-services:
-  app:
-    build:
-      context: .
-      dockerfile: resources/docker/Dockerfile
-    container_name: nexus_app
-    restart: unless-stopped
-    environment:
-      - APP_ENV=production
-      - APP_DEBUG=false
-    volumes:
-      - ./:/var/www/html
-      - ./storage:/var/www/html/storage
-    networks:
-      - nexus_network
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+   services:
+     app:
+       # PRODUCTION: Use the pre-built image from GitHub Container Registry
+       image: ghcr.io/musuya/nexus-registry/app:latest
+       
+       # LOCAL DEV: If you ever need to build locally, comment out 'image' and                                #      uncomment 'build'
+       # build:
+       #   context: .
+       #   dockerfile: resources/docker/Dockerfile
+       
+       container_name: nexus_app
+       restart: unless-stopped
+       environment:
+         - APP_ENV=production
+         - APP_DEBUG=false
+       volumes:
+         - ./:/var/www/html
+         - ./storage:/var/www/html/storage
+       networks:
+         - nexus_network
+       depends_on:
+         db:
+           condition: service_healthy
+         redis:
+           condition: service_healthy
 
   web:
     image: nginx:alpine
