@@ -1,4 +1,4 @@
-vvname: Deploy NexusRegistry to Production
+name: Deploy NexusRegistry to Production
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # PREMIUM FIX: Explicitly lowercase to satisfy Docker registry requirements
   IMAGE_NAME: musuya/nexus-registry/app
 
 jobs:
@@ -95,16 +94,9 @@ jobs:
             cd ${{ secrets.DEPLOY_PATH }}
             git pull origin main
             
-            # Pull the pre-built image from GitHub (takes seconds!)
             docker compose pull app
-            
-            # Start the containers
             docker compose up -d --remove-orphans
-            
-            # Run migrations and clear cache
             docker compose exec -T app php artisan migrate --force
             docker compose exec -T app php artisan optimize:clear
             docker compose exec -T app php artisan horizon:terminate
-            
-            # Clean up old images to save disk space
             docker image prune -f
