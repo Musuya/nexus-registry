@@ -10,7 +10,9 @@ RUN apk add --no-cache \
     git \
     curl \
     npm \
-    && docker-php-ext-install pdo_pgsql pgsql zip opcache pcntl
+    && docker-php-ext-install pdo_pgsql pgsql zip opcache pcntl \
+    && pecl install redis \
+    && docker-php-ext-enable redis
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
