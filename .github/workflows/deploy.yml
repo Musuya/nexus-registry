@@ -19,7 +19,7 @@ jobs:
           extensions: pdo, pgsql, zip
 
       - name: Install Composer Dependencies
-        run: composer install --no-dev --optimize-autoloader --no-interaction
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
