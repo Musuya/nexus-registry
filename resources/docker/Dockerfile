@@ -21,6 +21,10 @@ WORKDIR /var/www/html
 # Copy application code
 COPY . .
 
+# CRITICAL FIX: Remove .git folder to prevent "dubious ownership" errors 
+# and allow Composer to install dependencies successfully
+RUN rm -rf .git
+
 # Install PHP dependencies (optimized for production)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
