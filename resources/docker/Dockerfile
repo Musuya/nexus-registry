@@ -1,7 +1,7 @@
 # resources/docker/Dockerfile
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
-# Install system dependencies
+# Install system dependencies and PHP extensions (including pcntl for Horizon)
 RUN apk add --no-cache \
     postgresql-dev \
     libzip-dev \
@@ -10,7 +10,7 @@ RUN apk add --no-cache \
     git \
     curl \
     npm \
-    && docker-php-ext-install pdo_pgsql pgsql zip opcache
+    && docker-php-ext-install pdo_pgsql pgsql zip opcache pcntl
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
