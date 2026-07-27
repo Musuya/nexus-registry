@@ -32,14 +32,14 @@ jobs:
           npm ci
           npm run build
 
-       - name: Generate App Key for Testing
-         run: php artisan key:generate
+      - name: Generate App Key for Testing
+        run: php artisan key:generate
 
-       - name: Run Tests (Premium Quality Gate)
-         run: php artisan test
-         env:
-           DB_CONNECTION: sqlite
-           DB_DATABASE: ':memory:'
+      - name: Run Tests (Premium Quality Gate)
+        run: php artisan test
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
 
   deploy:
     needs: test-and-build
