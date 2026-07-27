@@ -56,7 +56,6 @@ jobs:
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
             git pull origin main
-            cp .env.example .env # Ensure .env exists, modify manually on server for secrets
             docker compose pull
             docker compose build --no-cache app
             docker compose up -d --remove-orphans
