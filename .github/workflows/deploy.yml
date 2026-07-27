@@ -32,6 +32,9 @@ jobs:
           npm ci
           npm run build
 
+      - name: Create Environment File
+        run: cp .env.example .env
+
       - name: Generate App Key for Testing
         run: php artisan key:generate
 
