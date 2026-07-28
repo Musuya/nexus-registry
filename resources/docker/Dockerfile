@@ -1,7 +1,7 @@
 # resources/docker/Dockerfile
 FROM php:8.4-fpm-alpine
 
-# Install system dependencies and PHP extensions (including pcntl for Horizon)
+# Install system dependencies and PHP extensions
 RUN apk add --no-cache \
     postgresql-dev \
     libzip-dev \
@@ -10,9 +10,7 @@ RUN apk add --no-cache \
     git \
     curl \
     npm \
-    && docker-php-ext-install pdo_pgsql pgsql zip opcache pcntl \
-    && pecl install redis \
-    && docker-php-ext-enable redis
+    && docker-php-ext-install pdo_pgsql pgsql zip opcache pcntl
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -24,7 +22,6 @@ WORKDIR /var/www/html
 COPY . .
 
 # CRITICAL FIX: Remove .git folder to prevent "dubious ownership" errors 
-# and allow Composer to install dependencies successfully
 RUN rm -rf .git
 
 # Install PHP dependencies (optimized for production)
