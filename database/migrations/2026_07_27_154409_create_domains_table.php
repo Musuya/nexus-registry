@@ -16,8 +16,6 @@ return new class extends Migration
             $table->string('name')->unique()->index(); // e.g., 'example.co.nz'
             $table->foreignUuid('registrar_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['ok', 'pendingTransfer', 'pendingDelete', 'clientHold'])->default('ok');
-            $table->dateTime('created_at')->index();
-            $table->dateTime('updated_at');
             $table->dateTime('expires_at')->index();
             $table->json('nameservers')->nullable(); // ['ns1.example.com', 'ns2.example.com']
             $table->foreignUuid('registrant_contact_id')->constrained('contacts');
