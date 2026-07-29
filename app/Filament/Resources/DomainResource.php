@@ -3,27 +3,26 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\DomainResource\Pages;
-use App\Filament\Resources\DomainResource\RelationManagers;
 use App\Models\Domain;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DomainResource extends Resource
 {
     protected static ?string $model = Domain::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                //
+                Forms\Components\TextInput::make('name')->required()->maxLength(255),
+                Forms\Components\DatePicker::make('expiration_date'),
+                Forms\Components\TextInput::make('status')->maxLength(255),
             ]);
     }
 
@@ -31,42 +30,16 @@ class DomainResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('expiration_date')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('name')->searchable(),
+                Tables\Columns\TextColumn::make('status')->badge()->searchable(),
+                Tables\Columns\TextColumn::make('expiration_date')->date()->sortable(),
             ])
-            ->filters([
-                //
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->filters([])
+            ->actions([Tables\Actions\EditAction::make()])
+            ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
+    public static function getRelations(): array { return []; }
 
     public static function getPages(): array
     {
