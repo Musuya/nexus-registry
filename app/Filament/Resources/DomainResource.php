@@ -20,9 +20,19 @@ class DomainResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')->required()->maxLength(255),
-                Forms\Components\DatePicker::make('expiration_date'),
-                Forms\Components\TextInput::make('status')->maxLength(255),
+                Forms\Components\TextInput::make('name')
+                    ->required()
+                    ->maxLength(255),
+
+                Forms\Components\DatePicker::make('expires_at') // Changed from expiration_date!
+                ->label('Expiration Date'),
+
+                Forms\Components\TextInput::make('status')
+                    ->maxLength(255),
+
+                Forms\Components\Textarea::make('nameservers')
+                    ->rows(3)
+                    ->helperText('Enter one nameserver per line'),
             ]);
     }
 
