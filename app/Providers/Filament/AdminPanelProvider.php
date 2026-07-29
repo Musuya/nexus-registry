@@ -26,7 +26,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login() // This is the magic line that fixed your 500 error!
+            ->login()
             ->colors([
                 'primary' => Color::Amber,
             ])
