@@ -22,17 +22,21 @@ class DomainResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->label('Domain Name'),
 
-                Forms\Components\DatePicker::make('expires_at') // Changed from expiration_date!
-                ->label('Expiration Date'),
+                Forms\Components\DatePicker::make('expires_at')
+                    ->label('Expiration Date'),
 
                 Forms\Components\TextInput::make('status')
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->default('active'),
 
-                Forms\Components\Textarea::make('nameservers')
-                    ->rows(3)
-                    ->helperText('Enter one nameserver per line'),
+                // Upgraded to TagsInput for perfect array handling!
+                Forms\Components\TagsInput::make('nameservers')
+                    ->placeholder('Add a nameserver (e.g., ns1.musuya.ke)')
+                    ->separator(',')
+                    ->helperText('Press Enter or comma to add multiple nameservers'),
             ]);
     }
 

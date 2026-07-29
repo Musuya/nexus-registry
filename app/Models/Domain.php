@@ -10,9 +10,16 @@ class Domain extends Model
     protected $fillable = [
         'name',
         'registrar_id',
-        'contact_id',
         'status',
-        'expiration_date',
+        'expires_at',
+        'nameservers',
+        'registrant_contact_id',
+    ];
+
+    // This is the magic that fixes the JSON/Array crash!
+    protected $casts = [
+        'expires_at' => 'date',
+        'nameservers' => 'array',
     ];
 
     public function registrar(): BelongsTo
